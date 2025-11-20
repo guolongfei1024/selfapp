@@ -1,5 +1,5 @@
 {
-  "name": "copy-of-voice-ledger-v9-emerald-fresh",
+  "name": "voice-ledger-v10-safari-fix",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -12,8 +12,8 @@
     "recharts": "^3.4.1",
     "lucide-react": "^0.554.0",
     "react": "^19.2.0",
-    "@google/genai": "^1.30.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "@google/genai": "^1.30.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

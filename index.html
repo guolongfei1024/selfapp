@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>VoiceLedger V9 (翡翠版)</title>
+    <title>VoiceLedger V10 (Safari Fix)</title>
     
     <!-- PWA & iOS Configuration -->
     <link rel="manifest" href="./manifest.json" />
@@ -12,6 +12,19 @@
     <meta name="apple-mobile-web-app-title" content="语音记账">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2983/2983797.png">
     
+    <!-- Browser Polyfill for process.env to prevent crash on Safari/Chrome -->
+    <script>
+      window.process = {
+        env: {
+          NODE_ENV: 'production',
+          // If you are deploying this manually, you may need to inject the API key here during build
+          // or ensure your hosting provider injects it. 
+          // This empty string prevents the "ReferenceError: process is not defined" crash.
+          API_KEY: '' 
+        }
+      };
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
@@ -22,7 +35,7 @@
               sans: ['Inter', 'sans-serif'],
             },
             colors: {
-              // Changed to Emerald/Teal theme for V9
+              // Emerald Theme for V10
               primary: {
                 50: '#ecfdf5',
                 100: '#d1fae5',
@@ -76,8 +89,9 @@
     "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "react": "https://aistudiocdn.com/react@^19.2.0",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
+    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.0/client",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0"
   }
 }
 </script>
