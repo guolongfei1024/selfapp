@@ -3,14 +3,61 @@ import { Category, TransactionType } from "../types";
 
 const MODEL_NAME = "gemini-2.5-flash";
 
-// Helper to get AI instance safely (Lazy Initialization)
-// This prevents the app from crashing on startup if process.env.API_KEY is missing.
-// It will only throw when the user actually tries to record/parse.
-const getAiClient = () => {
-  const key = process.env.API_KEY;
-  if (!key) {
-    throw new Error("API Key is missing. Please check your configuration.");
+// Declare extended window interface for TS
+declare global {
+  interface Window {
+    API_KEY?: string;
+    process?: any;
   }
+}
+
+// --- API KEY OMNI-SEARCH STRATEGY ---
+// Checks multiple locations for the API Key to ensure compatibility 
+// across different deployment targets (Netlify, Vercel, Vite, Standard HTML)
+export const retrieveApiKey = (): { key: string | undefined; source: string } => {
+  // 1. Check standard process.env (Node/Webpack/Pollyfilled)
+  if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+    return { key: process.env.API_KEY, source: 'process.env' };
+  }
+
+  // 2. Check import.meta.env (Vite/Modern Bundlers)
+  try {
+    // @ts-ignore
+    if (import.meta && import.meta.env) {
+      // @ts-ignore
+      if (import.meta.env.API_KEY) return { key: import.meta.env.API_KEY, source: 'import.meta.env.API_KEY' };
+      // @ts-ignore
+      if (import.meta.env.VITE_API_KEY) return { key: import.meta.env.VITE_API_KEY, source: 'VITE_API_KEY' };
+      // @ts-ignore
+      if (import.meta.env.REACT_APP_API_KEY) return { key: import.meta.env.REACT_APP_API_KEY, source: 'REACT_APP_API_KEY' };
+    }
+  } catch (e) {
+    // import.meta might not exist in some environments
+  }
+
+  // 3. Check global window object (Manual Injection)
+  if (typeof window !== 'undefined' && window.API_KEY) {
+    return { key: window.API_KEY, source: 'window.API_KEY' };
+  }
+
+  // 4. Check LocalStorage (Emergency Fallback for manual overrides)
+  if (typeof window !== 'undefined' && window.localStorage) {
+    const localKey = window.localStorage.getItem('gemini_api_key');
+    if (localKey) return { key: localKey, source: 'LocalStorage' };
+  }
+
+  return { key: undefined, source: 'Missing' };
+};
+
+// Helper to get AI instance safely
+const getAiClient = () => {
+  const { key, source } = retrieveApiKey();
+  if (!key) {
+    console.error("API Key retrieval failed. Checked: process.env, import.meta.env, window, localStorage.");
+    throw new Error("API Key is missing. Source: " + source);
+  }
+  // Log only the source for security, not the key itself
+  console.log(`Initializing AI Client using key from: ${source}`);
   return new GoogleGenAI({ apiKey: key });
 };
 
@@ -68,6 +115,7 @@ const getShanghaiDateInfo = () => {
 
 export const parseAudioTransaction = async (audioBase64: string, mimeType: string): Promise<AIParseResult> => {
   const currentDateTime = getShanghaiDateInfo();
+  // Initialize client inside the function to ensure environment is ready
   const ai = getAiClient(); 
   
   console.log(`Sending audio to Gemini. Mime: ${mimeType}, Length: ${audioBase64.length}`);
@@ -79,7 +127,7 @@ export const parseAudioTransaction = async (audioBase64: string, mimeType: strin
         parts: [
           {
             inlineData: {
-              mimeType: mimeType, // Use the actual detected mime type (e.g., audio/mp4)
+              mimeType: mimeType, // Use the actual detected mime type
               data: audioBase64,
             },
           },

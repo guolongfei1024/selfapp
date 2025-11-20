@@ -1,6 +1,6 @@
 {
-  "name": "voice-ledger-v12-safari-fix",
-  "description": "An intelligent expense tracker V12 - Safari Audio MIME Type Fix.",
+  "name": "voice-ledger-v13-key-fix",
+  "description": "An intelligent expense tracker V13 - Robust API Key Detection.",
   "requestFramePermissions": [
     "microphone"
   ]

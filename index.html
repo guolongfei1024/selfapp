@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>VoiceLedger V11</title>
+    <title>VoiceLedger V13</title>
     
     <!-- 1. CRITICAL: Error Trap for Safari White Screen -->
     <script>
@@ -23,11 +23,11 @@
 
     <!-- 2. CRITICAL: Process Polyfill (Must be before any imports) -->
     <script>
-      // Ensure process.env exists for Safari/Browser environments
+      // Robust Polyfill: Only create if missing, don't overwrite existing build-injected vars
       window.process = window.process || {};
       window.process.env = window.process.env || {};
       window.process.env.NODE_ENV = 'production';
-      window.process.env.API_KEY = window.process.env.API_KEY || ''; 
+      // Note: API_KEY might be injected later or exist in other scopes, handled by geminiService.ts
     </script>
     
     <!-- PWA & iOS Configuration -->
@@ -47,7 +47,7 @@
               sans: ['Inter', 'sans-serif'],
             },
             colors: {
-              // Royal Blue Theme for V11
+              // Royal Blue Theme for V13
               primary: {
                 50: '#eff6ff',
                 100: '#dbeafe',
@@ -113,7 +113,7 @@
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <p class="text-sm font-medium text-slate-500">Loading V11...</p>
+        <p class="text-sm font-medium text-slate-500">Loading V13...</p>
       </div>
     </div>
     <script type="module" src="./index.tsx"></script>

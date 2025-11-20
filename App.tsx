@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Transaction, TransactionType, Category } from './types';
-import { parseAudioTransaction, AIParseResult } from './services/geminiService';
+import { parseAudioTransaction, AIParseResult, retrieveApiKey } from './services/geminiService';
 import TransactionList from './components/TransactionList';
 import VoiceRecorder from './components/VoiceRecorder';
 import PieChartComponent from './components/PieChartComponent';
@@ -13,11 +13,15 @@ const App: React.FC = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingTransaction, setPendingTransaction] = useState<AIParseResult | null>(null);
   const [view, setView] = useState<'dashboard' | 'list'>('dashboard');
-  const [apiKeyStatus, setApiKeyStatus] = useState<boolean>(false);
+  const [apiKeyInfo, setApiKeyInfo] = useState<{present: boolean, source: string}>({ present: false, source: 'Checking...' });
 
   useEffect(() => {
-    // Check if API Key is present
-    setApiKeyStatus(!!process.env.API_KEY);
+    // Check API Key using the Omni-Search method
+    const { key, source } = retrieveApiKey();
+    setApiKeyInfo({
+      present: !!key,
+      source: source
+    });
 
     // Load from local storage
     const saved = localStorage.getItem('transactions');
@@ -56,7 +60,15 @@ const App: React.FC = () => {
           console.error("Processing failed", error);
           // Show detailed error message
           const msg = error instanceof Error ? error.message : String(error);
-          alert(`识别失败 (Error): ${msg}\n\n请截图此错误信息。如果是 400 错误，通常是音频格式问题。如果是 403 错误，是 API Key 问题。`);
+          
+          let friendlyMsg = `识别失败 (Error): ${msg}`;
+          if (msg.includes("API Key")) {
+             friendlyMsg += `\n\n如果环境变量失效，请在浏览器控制台输入: localStorage.setItem('gemini_api_key', '你的Key')`;
+          } else if (msg.includes("400")) {
+             friendlyMsg += `\n\n格式错误。Safari请确保更新到了V13。`;
+          }
+          
+          alert(friendlyMsg);
         } finally {
           setIsProcessing(false);
         }
@@ -103,7 +115,7 @@ const App: React.FC = () => {
         <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-9 h-9 bg-primary-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-primary-950/50">
-              V12
+              V13
             </div>
             <h1 className="font-bold text-xl text-white tracking-tight">VoiceLedger</h1>
           </div>
@@ -177,10 +189,10 @@ const App: React.FC = () => {
       </main>
       
       {/* Debug Footer for API Key */}
-      <div className="max-w-3xl mx-auto px-4 py-4 flex justify-center text-[10px] text-slate-400">
-        <div className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded-full">
+      <div className="max-w-3xl mx-auto px-4 py-4 flex justify-center text-[10px] text-slate-400 pb-20">
+        <div className={`flex items-center gap-1 px-3 py-1 rounded-full ${apiKeyInfo.present ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
             <Key size={10} />
-            <span>API Key: {apiKeyStatus ? 'Present (Configured)' : 'MISSING'}</span>
+            <span>API Key Source: {apiKeyInfo.source}</span>
         </div>
       </div>
 
