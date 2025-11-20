@@ -3,7 +3,32 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>VoiceLedger V10 (Safari Fix)</title>
+    <title>VoiceLedger V11</title>
+    
+    <!-- 1. CRITICAL: Error Trap for Safari White Screen -->
+    <script>
+      window.onerror = function(msg, url, line, col, error) {
+        var div = document.getElementById('error-trap');
+        if (!div) {
+          div = document.createElement('div');
+          div.id = 'error-trap';
+          div.style.cssText = 'position:fixed; top:0; left:0; width:100%; padding:20px; background:#fee2e2; color:#991b1b; z-index:99999; font-family:monospace; white-space:pre-wrap; box-shadow:0 4px 6px rgba(0,0,0,0.1);';
+          document.body.appendChild(div);
+        }
+        div.innerHTML += '<strong>⚠️ Application Error:</strong>\n' + msg + '\n<small>' + (url || 'unknown script') + ':' + line + '</small>\n\n';
+        // Prevent default console error if we handled it
+        return false;
+      };
+    </script>
+
+    <!-- 2. CRITICAL: Process Polyfill (Must be before any imports) -->
+    <script>
+      // Ensure process.env exists for Safari/Browser environments
+      window.process = window.process || {};
+      window.process.env = window.process.env || {};
+      window.process.env.NODE_ENV = 'production';
+      window.process.env.API_KEY = window.process.env.API_KEY || ''; 
+    </script>
     
     <!-- PWA & iOS Configuration -->
     <link rel="manifest" href="./manifest.json" />
@@ -12,19 +37,6 @@
     <meta name="apple-mobile-web-app-title" content="语音记账">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2983/2983797.png">
     
-    <!-- Browser Polyfill for process.env to prevent crash on Safari/Chrome -->
-    <script>
-      window.process = {
-        env: {
-          NODE_ENV: 'production',
-          // If you are deploying this manually, you may need to inject the API key here during build
-          // or ensure your hosting provider injects it. 
-          // This empty string prevents the "ReferenceError: process is not defined" crash.
-          API_KEY: '' 
-        }
-      };
-    </script>
-
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
@@ -35,14 +47,19 @@
               sans: ['Inter', 'sans-serif'],
             },
             colors: {
-              // Emerald Theme for V10
+              // Royal Blue Theme for V11
               primary: {
-                50: '#ecfdf5',
-                100: '#d1fae5',
-                500: '#10b981',
-                600: '#059669',
-                700: '#047857',
-                900: '#064e3b',
+                50: '#eff6ff',
+                100: '#dbeafe',
+                200: '#bfdbfe',
+                300: '#93c5fd',
+                400: '#60a5fa',
+                500: '#3b82f6',
+                600: '#2563eb',
+                700: '#1d4ed8',
+                800: '#1e40af',
+                900: '#1e3a8a',
+                950: '#172554',
               },
               dark: {
                 900: '#0f172a',
@@ -54,50 +71,51 @@
       }
     </script>
     <style>
-      /* Custom scrollbar for clean look */
-      ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
-      }
-      ::-webkit-scrollbar-track {
-        background: transparent; 
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #cbd5e1; 
-        border-radius: 3px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8; 
-      }
-      /* Hide scrollbar for mobile-like feel in lists */
-      .no-scrollbar::-webkit-scrollbar {
-        display: none;
-      }
-      .no-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
-      /* Prevent pull-to-refresh on mobile to feel more like an app */
-      body {
-        overscroll-behavior-y: none;
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      body { overscroll-behavior-y: none; min-height: 100vh; min-height: -webkit-fill-available; }
+      html { height: -webkit-fill-available; }
+      
+      /* Initial Loader */
+      #initial-loader {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        color: #3b82f6;
+        font-family: sans-serif;
+        transition: opacity 0.5s;
       }
     </style>
-  <script type="importmap">
+    <script type="importmap">
 {
   "imports": {
-    "recharts": "https://aistudiocdn.com/recharts@^3.4.1",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "react": "https://aistudiocdn.com/react@^19.2.0",
     "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.0/client",
+    "recharts": "https://aistudiocdn.com/recharts@^3.4.1",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0"
+    "react/": "https://aistudiocdn.com/react@^19.2.0/"
   }
 }
 </script>
-</head>
+  </head>
   <body class="bg-slate-50 text-slate-900 antialiased safe-area-inset-bottom">
-    <div id="root"></div>
+    <div id="root">
+      <!-- Visual feedback before React mounts -->
+      <div id="initial-loader">
+        <svg class="animate-spin h-10 w-10 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="text-sm font-medium text-slate-500">Loading V11...</p>
+      </div>
+    </div>
     <script type="module" src="./index.tsx"></script>
   </body>
 </html>

@@ -1,10 +1,18 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { Category, TransactionType } from "../types";
 
-// Initialize Gemini AI
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 const MODEL_NAME = "gemini-2.5-flash";
+
+// Helper to get AI instance safely (Lazy Initialization)
+// This prevents the app from crashing on startup if process.env.API_KEY is missing.
+// It will only throw when the user actually tries to record/parse.
+const getAiClient = () => {
+  const key = process.env.API_KEY;
+  if (!key) {
+    console.warn("API Key is missing in process.env");
+  }
+  return new GoogleGenAI({ apiKey: key || '' });
+};
 
 // Define the expected response structure for a transaction
 const transactionSchema: Schema = {
@@ -60,6 +68,7 @@ const getShanghaiDateInfo = () => {
 
 export const parseAudioTransaction = async (audioBase64: string): Promise<AIParseResult> => {
   const currentDateTime = getShanghaiDateInfo();
+  const ai = getAiClient(); // Init here
   
   try {
     const response = await ai.models.generateContent({
@@ -102,6 +111,7 @@ export const parseAudioTransaction = async (audioBase64: string): Promise<AIPars
 
 export const parseTextTransaction = async (text: string): Promise<AIParseResult> => {
   const currentDateTime = getShanghaiDateInfo();
+  const ai = getAiClient(); // Init here
 
   try {
     const response = await ai.models.generateContent({

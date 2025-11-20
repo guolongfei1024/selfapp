@@ -86,12 +86,12 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-32 relative">
-      {/* Header - VISUAL CHANGE: V10 Emerald Theme */}
+      {/* Header - VISUAL CHANGE: V11 Royal Blue Theme */}
       <header className="bg-primary-900 border-b border-primary-800 sticky top-0 z-30 shadow-md">
         <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-9 h-9 bg-primary-500 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-primary-900/50">
-              V10
+            <div className="w-9 h-9 bg-primary-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-primary-950/50">
+              V11
             </div>
             <h1 className="font-bold text-xl text-white tracking-tight">VoiceLedger</h1>
           </div>
@@ -114,7 +114,7 @@ const App: React.FC = () => {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 pt-6 space-y-6">
-        {/* Balance Card - VISUAL CHANGE: V10 Emerald Gradient */}
+        {/* Balance Card - VISUAL CHANGE: V11 Royal Gradient */}
         <div className="bg-gradient-to-br from-primary-700 via-primary-800 to-primary-900 rounded-2xl p-6 text-white shadow-xl shadow-primary-900/20 border border-primary-700">
           <p className="text-primary-100 text-sm font-medium mb-1">总资产 (Total Balance)</p>
           <h2 className="text-4xl font-bold mb-6 tracking-tight">¥{balance.toFixed(2)}</h2>
