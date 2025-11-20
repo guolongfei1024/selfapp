@@ -1,6 +1,6 @@
 {
-  "name": "voice-ledger-v11-safari-debug",
-  "description": "An intelligent expense tracker V11 - Safari Debug Mode & Royal Blue Theme.",
+  "name": "voice-ledger-v12-safari-fix",
+  "description": "An intelligent expense tracker V12 - Safari Audio MIME Type Fix.",
   "requestFramePermissions": [
     "microphone"
   ]

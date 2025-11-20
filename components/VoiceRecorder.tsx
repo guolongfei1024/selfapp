@@ -13,6 +13,7 @@ const VoiceRecorder: React.FC<Props> = ({ onRecordingComplete, isProcessing }) =
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<number | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const mimeTypeRef = useRef<string>('');
 
   // Cleanup on unmount
   useEffect(() => {
@@ -24,12 +25,34 @@ const VoiceRecorder: React.FC<Props> = ({ onRecordingComplete, isProcessing }) =
     };
   }, []);
 
+  const getSupportedMimeType = () => {
+    const types = [
+      'audio/mp4', // Safari priority
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/ogg',
+      'audio/wav'
+    ];
+    for (const type of types) {
+      if (MediaRecorder.isTypeSupported(type)) {
+        return type;
+      }
+    }
+    return ''; // Let browser default if nothing matches
+  };
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       
-      const mediaRecorder = new MediaRecorder(stream);
+      const mimeType = getSupportedMimeType();
+      mimeTypeRef.current = mimeType;
+      
+      // Safari requires empty options sometimes if not specifying properly, but usually works with mimeType
+      const options = mimeType ? { mimeType } : undefined;
+      
+      const mediaRecorder = new MediaRecorder(stream, options);
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
 
@@ -40,7 +63,10 @@ const VoiceRecorder: React.FC<Props> = ({ onRecordingComplete, isProcessing }) =
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/wav' });
+        // Critical: Use the actual mime type used, or fallback to mediaRecorder.mimeType
+        const finalType = mimeTypeRef.current || mediaRecorder.mimeType || 'audio/webm';
+        const blob = new Blob(chunksRef.current, { type: finalType });
+        console.log(`Recording stopped. MimeType: ${finalType}, Size: ${blob.size}`);
         onRecordingComplete(blob);
         
         // Stop all tracks to release mic
@@ -60,7 +86,7 @@ const VoiceRecorder: React.FC<Props> = ({ onRecordingComplete, isProcessing }) =
 
     } catch (error) {
       console.error("Error accessing microphone:", error);
-      alert("Could not access microphone. Please check permissions.");
+      alert(`Could not access microphone: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 

@@ -9,9 +9,9 @@ const MODEL_NAME = "gemini-2.5-flash";
 const getAiClient = () => {
   const key = process.env.API_KEY;
   if (!key) {
-    console.warn("API Key is missing in process.env");
+    throw new Error("API Key is missing. Please check your configuration.");
   }
-  return new GoogleGenAI({ apiKey: key || '' });
+  return new GoogleGenAI({ apiKey: key });
 };
 
 // Define the expected response structure for a transaction
@@ -66,10 +66,12 @@ const getShanghaiDateInfo = () => {
   return now.toLocaleString('zh-CN', options);
 };
 
-export const parseAudioTransaction = async (audioBase64: string): Promise<AIParseResult> => {
+export const parseAudioTransaction = async (audioBase64: string, mimeType: string): Promise<AIParseResult> => {
   const currentDateTime = getShanghaiDateInfo();
-  const ai = getAiClient(); // Init here
+  const ai = getAiClient(); 
   
+  console.log(`Sending audio to Gemini. Mime: ${mimeType}, Length: ${audioBase64.length}`);
+
   try {
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
@@ -77,7 +79,7 @@ export const parseAudioTransaction = async (audioBase64: string): Promise<AIPars
         parts: [
           {
             inlineData: {
-              mimeType: "audio/wav", // Assuming WAV from MediaRecorder
+              mimeType: mimeType, // Use the actual detected mime type (e.g., audio/mp4)
               data: audioBase64,
             },
           },
@@ -111,7 +113,7 @@ export const parseAudioTransaction = async (audioBase64: string): Promise<AIPars
 
 export const parseTextTransaction = async (text: string): Promise<AIParseResult> => {
   const currentDateTime = getShanghaiDateInfo();
-  const ai = getAiClient(); // Init here
+  const ai = getAiClient(); 
 
   try {
     const response = await ai.models.generateContent({

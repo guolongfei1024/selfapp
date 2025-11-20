@@ -5,7 +5,7 @@ import TransactionList from './components/TransactionList';
 import VoiceRecorder from './components/VoiceRecorder';
 import PieChartComponent from './components/PieChartComponent';
 import Modal from './components/Modal';
-import { LayoutDashboard, List, Check, Loader2, RefreshCw } from 'lucide-react';
+import { LayoutDashboard, List, Check, Loader2, RefreshCw, Key } from 'lucide-react';
 
 const App: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -13,9 +13,13 @@ const App: React.FC = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingTransaction, setPendingTransaction] = useState<AIParseResult | null>(null);
   const [view, setView] = useState<'dashboard' | 'list'>('dashboard');
+  const [apiKeyStatus, setApiKeyStatus] = useState<boolean>(false);
 
-  // Load from local storage
   useEffect(() => {
+    // Check if API Key is present
+    setApiKeyStatus(!!process.env.API_KEY);
+
+    // Load from local storage
     const saved = localStorage.getItem('transactions');
     if (saved) {
       try {
@@ -34,18 +38,25 @@ const App: React.FC = () => {
   const handleAudioRecord = async (audioBlob: Blob) => {
     setIsProcessing(true);
     try {
+      // Get the actual mime type from the blob
+      const mimeType = audioBlob.type || 'audio/webm'; // Default fallback
+      
       // Convert Blob to Base64
       const reader = new FileReader();
       reader.readAsDataURL(audioBlob);
       reader.onloadend = async () => {
-        const base64data = (reader.result as string).split(',')[1];
+        const resultStr = reader.result as string;
+        // Remove data:audio/xxx;base64, prefix
+        const base64data = resultStr.split(',')[1];
         try {
-          const result = await parseAudioTransaction(base64data);
+          const result = await parseAudioTransaction(base64data, mimeType);
           setPendingTransaction(result);
           setShowConfirmModal(true);
-        } catch (error) {
+        } catch (error: any) {
           console.error("Processing failed", error);
-          alert("无法识别语音内容，或者 API Key 未配置。请检查网络或密钥设置。");
+          // Show detailed error message
+          const msg = error instanceof Error ? error.message : String(error);
+          alert(`识别失败 (Error): ${msg}\n\n请截图此错误信息。如果是 400 错误，通常是音频格式问题。如果是 403 错误，是 API Key 问题。`);
         } finally {
           setIsProcessing(false);
         }
@@ -53,6 +64,7 @@ const App: React.FC = () => {
     } catch (e) {
       setIsProcessing(false);
       console.error(e);
+      alert("Failed to process audio file.");
     }
   };
 
@@ -86,12 +98,12 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-32 relative">
-      {/* Header - VISUAL CHANGE: V11 Royal Blue Theme */}
+      {/* Header */}
       <header className="bg-primary-900 border-b border-primary-800 sticky top-0 z-30 shadow-md">
         <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-9 h-9 bg-primary-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-primary-950/50">
-              V11
+              V12
             </div>
             <h1 className="font-bold text-xl text-white tracking-tight">VoiceLedger</h1>
           </div>
@@ -114,7 +126,7 @@ const App: React.FC = () => {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 pt-6 space-y-6">
-        {/* Balance Card - VISUAL CHANGE: V11 Royal Gradient */}
+        {/* Balance Card */}
         <div className="bg-gradient-to-br from-primary-700 via-primary-800 to-primary-900 rounded-2xl p-6 text-white shadow-xl shadow-primary-900/20 border border-primary-700">
           <p className="text-primary-100 text-sm font-medium mb-1">总资产 (Total Balance)</p>
           <h2 className="text-4xl font-bold mb-6 tracking-tight">¥{balance.toFixed(2)}</h2>
@@ -163,6 +175,14 @@ const App: React.FC = () => {
           </div>
         )}
       </main>
+      
+      {/* Debug Footer for API Key */}
+      <div className="max-w-3xl mx-auto px-4 py-4 flex justify-center text-[10px] text-slate-400">
+        <div className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded-full">
+            <Key size={10} />
+            <span>API Key: {apiKeyStatus ? 'Present (Configured)' : 'MISSING'}</span>
+        </div>
+      </div>
 
       {/* Voice Recorder Controls */}
       <VoiceRecorder 
