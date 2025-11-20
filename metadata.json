@@ -1,0 +1,7 @@
+{
+  "name": "Copy of voice-ledger-v9-emerald-fresh",
+  "description": "An intelligent expense tracker V9 - Emerald Edition.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
